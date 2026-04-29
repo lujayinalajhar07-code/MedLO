@@ -1,6 +1,6 @@
 # 🩺 MedLuj — The Ultimate Medical Study Universe
 
-مصنوع بكل المحبة من لجين لـ عبادة 💛
+ 💛
 
 ## هيكل المشروع
 
