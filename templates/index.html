@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedLuj 🩺 — Study Universe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root{
+      --bg:#F9F6F0;
+      --bg2:#EFEBE1;
+      --card:#FFFFFF;
+      --card-border:#D8D2C4;
+
+      --orange:#1A365D;
+      --orange-light:#2B6CB0;
+      --orange-dark:#0F1D30;
+
+      --text:#2D3748;
+      --text-muted:#718096;
+
+      --radius:8px;
+      --sidebar-w:85px;
+    }
+    
+    body.night-mode {
+      --bg:#1A202C;
+      --bg2:#2D3748;
+      --card:#2D3748;
+      --card-border:#4A5568;
+      --text:#F7FAFC;
+      --text-muted:#A0AEC0;
+      --orange:#90CDF4;
+      --orange-light:#E2E8F0;
+    }
+
+    body{
+      font-family:'Tajawal',sans-serif;
+      background:var(--bg);
+      background-image:radial-gradient(var(--bg2) 1px, transparent 1px);
+      background-size:20px 20px;
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      overflow:hidden;
+    }
+
+    /* background orbs */
+    .bg-orbs{ display:none; }
+
+    /* sidebar */
+    .sidebar{
+      width:var(--sidebar-w);
+      height:100vh;
+      background:var(--orange);
+      border-left:1px solid var(--orange-dark);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:24px 0;
+      position:fixed;
+      right:0;top:0;
+      z-index:100;
+      box-shadow:-4px 0 15px rgba(0,0,0,0.1);
+      color:#fff;
+    }
+    .sidebar-logo{ font-size:32px; font-family:'Amiri', serif; font-weight:700; margin-bottom:40px; color:#fff; }
+    @keyframes pulse{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+    .nav-items{ flex:1; display:flex; flex-direction:column; gap:8px; align-items:center; }
+    .nav-item{
+      width:50px;height:50px;
+      border-radius:14px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:22px;
+      cursor:pointer;
+      transition:all .25s ease;
+      position:relative;
+      border:1px solid transparent;
+      color:rgba(255,255,255,0.6);
+    }
+    .nav-item:hover,.nav-item.active{
+      background:rgba(255,255,255,0.1);
+      border-color:rgba(255,255,255,0.3);
+      transform:scale(1.05);
+      color:#fff;
+      box-shadow:0 4px 10px rgba(0,0,0,0.1);
+    }
+    .nav-item.active::before{
+      content:'';
+      position:absolute;
+      right:-18px;
+      width:3px;height:24px;
+      background:var(--orange-light);
+      border-radius:2px;
+    }
+    .nav-tip{
+      position:absolute;
+      right:calc(100% + 12px);
+      background:var(--orange-dark);
+      color:#fff;
+      padding:5px 10px;
+      border-radius:10px;
+      font-size:12px;
+      white-space:nowrap;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s;
+      border:1px solid rgba(255,255,255,0.1);
+    }
+    .nav-item:hover .nav-tip{ opacity:1; }
+
+    .sidebar-footer{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .avatar-bubble{
+      width:44px;height:44px;
+      background:var(--bg);
+      border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:20px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      color:var(--orange);
+      border:1px solid var(--card-border);
+    }
+    .logout-btn{
+      width:40px;height:40px;border-radius:12px;
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.3);
+      display:flex;align-items:center;justify-content:center;
+      font-size:16px;
+      cursor:pointer;
+      transition:all .25s;
+      text-decoration:none;
+      color:rgba(255,255,255,0.7);
+    }
+    .logout-btn:hover{ background:rgba(255,255,255,0.1); transform:scale(1.08); color:#fff; }
+
+    /* main */
+    .main{
+      margin-right:var(--sidebar-w);
+      flex:1;
+      height:100vh;
+      overflow-y:auto;
+      padding:28px 32px;
+      position:relative;
+      z-index:1;
+      scroll-behavior:smooth;
+    }
+
+    .top-header{
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:28px;
+      gap:16px;
+    }
+    .greeting h2{
+      font-family:'Amiri', serif;
+      font-size:32px; font-weight:700;
+      color:var(--orange);
+      animation:fadeInDown 0.8s ease-out;
+    }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    .greeting p{ font-size:15px; color:var(--text-muted); margin-top:4px; font-weight:500; }
+
+    .date-chip{
+      background:var(--card);
+      border:1px solid var(--card-border);
+      border-radius:8px;
+      padding:8px 16px;
+      font-size:14px;
+      color:var(--orange);
+      white-space:nowrap;
+      font-weight:700;
+      box-shadow:0 2px 5px rgba(0,0,0,0.02);
+    }
+
+    /* glass card */
+    .glass-card{
+      background:var(--card);
+      border:1px solid var(--card-border);
+      border-radius:var(--radius);
+      padding:24px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.03);
+      transition:transform .25s, box-shadow .25s, border-color .25s;
+    }
+    .glass-card:hover{
+      transform:translateY(-3px);
+      border-color:var(--orange-light);
+      box-shadow:0 8px 24px rgba(0,0,0,0.06);
+    }
+
+    .card-title{
+      font-size:14px; font-weight:700;
+      color:var(--orange);
+      text-transform:uppercase;
+      letter-spacing:1.2px;
+      margin-bottom:16px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .card-title::before{
+      content:'';
+      width:3px;height:14px;
+      background:var(--orange-light);
+      border-radius:2px;
+    }
+
+    /* sections */
+    .section{ display:none; animation:sectionIn .4s ease both; }
+    .section.active{ display:block; }
+    @keyframes sectionIn{ from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ===== CLINICAL TIMER ENHANCEMENTS ===== */
+    .timer-grid{ display:grid; grid-template-columns:1.2fr 1fr; grid-template-rows:auto auto; gap:16px; }
+    /* Premium SaaS Monitor */
+    .premium-monitor {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 32px 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.4);
+      border: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      grid-column: 1 / -1;
+      transition: all 0.3s;
+    }
+    body.night-mode .premium-monitor {
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .premium-monitor::before {
+      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+      background: radial-gradient(circle at center, var(--orange-light) 0%, transparent 40%);
+      opacity: 0.05; pointer-events: none; z-index: 0;
+    }
+    .monitor-header {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 30px; position: relative; z-index: 1; font-family: 'Inter', 'Tajawal', sans-serif;
+    }
+    .monitor-title { font-weight: 700; font-size: 16px; color: var(--orange); display: flex; align-items: center; gap: 8px; }
+    .monitor-status {
+      display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;
+      padding: 6px 14px; background: var(--bg); border: 1px solid var(--card-border);
+      border-radius: 20px; color: var(--text-muted); transition: all 0.3s;
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #A0AEC0; }
+    .status-dot.active { background: #00BFA5; box-shadow: 0 0 10px rgba(0,191,165,0.6); animation: pulseDot 1.5s infinite; }
+    .status-dot.paused { background: #ED8936; }
+    @keyframes pulseDot { 0% { transform: scale(0.95); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.8; } 100% { transform: scale(0.95); opacity: 1; } }
+
+    .timer-circle-container {
+      position: relative; width: 260px; height: 260px;
+      display: flex; justify-content: center; align-items: center; margin-bottom: 36px; z-index: 1;
+    }
+    .timer-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+    .timer-bg { fill: none; stroke: var(--bg); stroke-width: 6; }
+    .timer-progress {
+      fill: none; stroke: url(#timerGrad); stroke-width: 8; stroke-linecap: round;
+      stroke-dasharray: 565.48; stroke-dashoffset: 565.48;
+      transition: stroke-dashoffset 1s linear; filter: url(#glow);
+    }
+    .timer-content { text-align: center; display: flex; flex-direction: column; gap: 6px; }
+    .premium-time {
+      font-family: 'Inter', sans-serif; font-size: 52px; font-weight: 700; color: var(--text);
+      font-variant-numeric: tabular-nums; line-height: 1; margin: 0; letter-spacing: -1.5px;
+      text-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: color 0.3s;
+    }
+    .premium-time.pulse { color: var(--orange); animation: timePulse 2s infinite; }
+    @keyframes timePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+    .timer-subtitle { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
+
+    .premium-controls { display: flex; gap: 16px; width: 100%; justify-content: center; z-index: 1; flex-wrap: wrap; }
+    .btn-premium {
+      display: flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 16px;
+      font-family: 'Inter', 'Tajawal', sans-serif; font-weight: 600; font-size: 15px;
+      cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: none; outline: none;
+    }
+    .btn-premium .icon { font-size: 18px; }
+    .btn-premium.primary { background: linear-gradient(135deg, var(--orange-light), var(--orange)); color: white; box-shadow: 0 8px 20px rgba(26,54,93,0.2); }
+    .btn-premium.primary:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(26,54,93,0.3); }
+    .btn-premium.primary:active { transform: translateY(1px); }
+    
+    .btn-premium.secondary { background: var(--bg2); color: var(--text); border: 1px solid var(--card-border); }
+    .btn-premium.secondary:hover { background: var(--card-border); transform: translateY(-2px); }
+    
+    .btn-premium.outline { background: transparent; color: var(--orange); border: 1px solid var(--orange); }
+    .btn-premium.outline:hover { background: var(--orange); color: white; transform: translateY(-2px); }
+
+    /* ===== DYNAMIC ISLAND TIMER ===== */
+    .timer-wrapper { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
+    .time-presets { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .preset-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--card-border); cursor: pointer; background: var(--bg); color: var(--text); font-family: 'Tajawal', sans-serif; font-weight: 700; transition: all 0.3s; }
+    .preset-btn.active { background: var(--orange); color: var(--bg); border-color: var(--orange); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    
+    .dynamic-island-timer {
+      background: var(--bg2); color: var(--text); width: 100%; max-width: 420px; border-radius: 40px;
+      display: flex; justify-content: space-between; align-items: center; padding: 25px 35px;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.02); margin: 0 auto; border: 1px solid var(--card-border);
+    }
+    .timer-left { display: flex; flex-direction: column; gap: 8px; }
+    .island-timer-display { font-family: 'Inter', sans-serif; font-size: 48px; font-weight: 700; margin: 0; line-height: 1; color: var(--orange); text-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); font-variant-numeric: tabular-nums; letter-spacing: -1px; }
+    .timer-label { color: var(--text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-family: 'Inter', sans-serif; }
+    
+    .stop-btn { padding: 8px 16px; border-radius: 12px; border: 1px solid var(--card-border); cursor: pointer; background: transparent; color: var(--orange); font-family: 'Inter', 'Tajawal', sans-serif; font-weight: 600; transition: all 0.3s; align-self: flex-start; font-size: 13px; }
+    .stop-btn:hover { background: var(--card-border); }
+    
+    .progress-ring { position: relative; width: 100px; height: 100px; }
+    .ring-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+    .ring-bg { fill: none; stroke: var(--card-border); stroke-width: 6; }
+    .ring-progress {
+      fill: none; stroke: var(--orange); stroke-width: 6; stroke-linecap: round;
+      stroke-dasharray: 339.29; stroke-dashoffset: 0; transition: stroke-dashoffset 0.3s linear;
+    }
+    
+    .island-play-pause-btn {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: none; border: none; color: var(--orange); font-size: 32px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+    }
+    .island-play-pause-btn:hover { transform: translate(-50%, -50%) scale(1.1); color: var(--orange-light); text-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
+
+    /* stats */
+    .stats-grid{ display:grid; grid-template-columns:1.5fr 1fr; gap:16px; }
+    .circular-card{ display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .circular-progress-wrap{ position:relative; width:150px;height:150px; margin:12px auto; }
+    .circular-progress-wrap svg{ transform:rotate(-90deg); }
+    .progress-bg{ fill:none; stroke:var(--bg2); stroke-width:12; }
+    .progress-fill{ fill:none; stroke:url(#orangeGrad); stroke-width:12; stroke-linecap:round; transition:stroke-dashoffset 1.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .progress-text{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .progress-pct{ font-family:'Amiri', serif; font-size:32px; font-weight:700; color:var(--orange); }
+    .progress-label{ font-size:13px; color:var(--text-muted); font-weight:500; }
+
+    .stats-mini-row{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:16px; }
+    .mini-stat{ background:var(--card); border:1px solid var(--card-border); border-radius:8px; padding:14px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:all 0.25s ease; }
+    .mini-stat:hover { transform:translateY(-2px); border-color:var(--orange); box-shadow:0 4px 12px rgba(0,0,0,0.05); }
+    .mini-stat .val{ font-family:'Amiri', serif; font-size:26px; font-weight:700; color:var(--orange); }
+    .mini-stat .lbl{ font-size:13px; color:var(--text-muted); margin-top:4px; font-weight:500; }
+
+    /* capsule */
+    .lujayn-hero{
+      text-align:center;
+      padding:36px 24px;
+      background:var(--bg);
+      border-radius:8px;
+      border:1px solid var(--orange);
+      position:relative;
+      overflow:hidden;
+      margin-bottom:16px;
+    }
+    .lujayn-hero::before{ display:none; }
+    .lujayn-hero-msg{ font-size:20px; font-weight:900; color:var(--text); line-height:1.7; margin:14px 0 8px; min-height:60px; position:relative; z-index:1; }
+    .lujayn-from{ font-size:13px; color:var(--text-muted); font-weight:800; position:relative; z-index:1; }
+    .lujayn-from span{ color:var(--orange-light); font-weight:950; }
+    .lujayn-hint{ margin-top:10px; font-size:12px; color:var(--text-muted); font-weight:800; position:relative; z-index:1; }
+
+    /* tools */
+    .tools-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .search-input-wrap{ position:relative; }
+    .search-input{
+      width:100%;
+      padding:13px 18px 13px 44px;
+      background:var(--bg);
+      border:1px solid var(--card-border);
+      border-radius:6px;
+      font-family:'Tajawal',sans-serif;
+      font-size:16px; /* يجب أن يكون 16px لمنع التكبير التلقائي في أجهزة الآيباد والتابلت */
+      color:var(--text);
+      outline:none;
+      transition:all .22s ease;
+      direction:rtl;
+      font-weight:500;
+    }
+    .search-input:focus{ border-color:var(--orange); background:var(--card); box-shadow:0 0 0 3px rgba(26,54,93,0.1); }
+    .search-input::placeholder{ color:var(--text-muted); opacity:0.6; }
+    .search-icon{ position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:18px; opacity:.5; }
+
+    .result-box{
+      background:var(--bg);
+      border:1px solid var(--card-border);
+      border-radius:6px;
+      padding:14px 16px;
+      margin-top:10px;
+      font-size:14px;
+      min-height:60px;
+      display:none;
+    }
+    .result-box.show{ display:block; }
+    .result-box .term-ar{ font-family:'Amiri',serif; font-size:20px; font-weight:700; color:var(--orange); }
+    .result-box .term-def{ color:var(--text); margin-top:4px; font-size:14px; font-weight:500; }
+    .result-box .term-cat{ display:inline-block; background:var(--bg2); border:1px solid var(--card-border); border-radius:4px; padding:3px 9px; font-size:12px; color:var(--text-muted); margin-top:6px; font-weight:700; }
+
+    .vitals-select{
+      width:100%;
+      padding:13px 18px;
+      background:var(--bg);
+      border:1px solid var(--card-border);
+      border-radius:6px;
+      font-family:'Tajawal',sans-serif;
+      font-size:16px;
+      color:var(--text);
+      outline:none;
+      cursor:pointer;
+      margin-bottom:10px;
+      direction:rtl;
+      font-weight:500;
+    }
+    .vitals-select:focus{ border-color:var(--orange); background:var(--card); box-shadow:0 0 0 3px rgba(26,54,93,0.1); }
+
+    .vital-result{
+      border-radius:6px;
+      padding:14px 16px;
+      margin-top:10px;
+      font-size:14px;
+      font-weight:700;
+      text-align:center;
+      display:none;
+      direction:rtl;
+      line-height:1.6;
+    }
+    .vital-result.show{ display:block; }
+    .vital-result.normal{ background:#e6f4ea; border:1px solid #c6f6d5; color:#22543d; }
+    .vital-result.high{ background:#fed7d7; border:1px solid #feb2b2; color:#9b2c2c; }
+    .vital-result.low{ background:#fefcbf; border:1px solid #f6e05e; color:#744210; }
+
+    /* mood slider */
+    .mood-slider { width:100%; accent-color:var(--orange); cursor:pointer; height:6px; background:var(--card-border); border-radius:4px; outline:none; -webkit-appearance:none; }
+    .mood-slider::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--orange); cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.2); }
+
+    /* notes */
+    .notes-area{
+      width:100%;
+      min-height:140px;
+      padding:14px;
+      background:var(--bg);
+      border:1px solid var(--card-border);
+      border-radius:6px;
+      font-family:'Tajawal',sans-serif;
+      font-size:16px;
+      color:var(--text);
+      resize:vertical;
+      outline:none;
+      direction:rtl;
+      transition:border-color .2s ease, box-shadow .2s ease;
+      margin-top:8px;
+      font-weight:500;
+      line-height:1.8;
+    }
+    .notes-area:focus{ border-color:var(--orange); background:var(--card); box-shadow:0 0 0 3px rgba(26,54,93,0.1); }
+
+    .notes-view{
+      margin-top:14px;
+      padding:14px;
+      background:var(--bg);
+      border:1px solid var(--card-border);
+      border-radius:6px;
+      display:none;
+    }
+    .notes-view.show{ display:block; }
+    .notes-view-title{
+      font-size:12px;
+      color:var(--text-muted);
+      font-weight:950;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .notes-view-title::before{
+      content:'';
+      width:10px;height:10px;
+      border-radius:50%;
+      background:var(--orange);
+      box-shadow:0 0 14px rgba(234,128,53,0.45);
+    }
+    .notes-view-pre{ white-space:pre-wrap; font-family:'Tajawal',sans-serif; font-size:14px; color:var(--text); font-weight:700; line-height:1.8; min-height:70px; }
+
+    /* toast */
+    .toast{
+      position:fixed;
+      bottom:24px;
+      left:50%;
+      transform:translateX(-50%) translateY(100px);
+      background:var(--orange);
+      color:#fff;
+      padding:12px 24px;
+      border-radius:6px;
+      font-size:14px;
+      font-weight:700;
+      box-shadow:0 8px 24px rgba(0,0,0,0.15);
+      transition:transform .4s cubic-bezier(0.34,1.56,0.64,1);
+      z-index:1000;
+    }
+    .toast.show{ transform:translateX(-50%) translateY(0); }
+
+    /* scrollbar */
+    .main::-webkit-scrollbar{ width:6px; }
+    .main::-webkit-scrollbar-track{ background:transparent; }
+    .main::-webkit-scrollbar-thumb{ background:var(--card-border); border-radius:4px; }
+    .main::-webkit-scrollbar-thumb:hover{ background:var(--text-muted); }
+
+    /* ===== NIGHT MODE ===== */
+    .theme-toggle {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      z-index: 99;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 22px;
+      transition: all 0.3s;
+      color: var(--orange);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .theme-toggle:hover {
+      background: var(--bg);
+      transform: scale(1.1) rotate(20deg);
+    }
+
+    /* ===== MUSIC PLAYER ===== */
+    .music-player {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 99;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      min-width: 280px;
+    }
+    .music-player.collapsed {
+      min-width: auto;
+    }
+    .music-player.collapsed .music-info {
+      display: none;
+    }
+    .music-toggle-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--orange);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: white;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+    .music-toggle-btn:hover {
+      transform: scale(1.1);
+    }
+    .music-toggle-btn.playing {
+      box-shadow: 0 0 15px rgba(26,54,93,0.5);
+      background: var(--orange-light);
+    }
+    .music-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .music-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .music-current {
+      font-size: 13px;
+      color: var(--orange);
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .music-collapse-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background: var(--bg);
+      border: 1px solid var(--card-border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: var(--orange);
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+    .music-collapse-btn:hover { background: var(--bg2); }
+    @keyframes musicBars {
+      0%, 100% { transform: scaleY(0.3); }
+      50% { transform: scaleY(1); }
+    }
+
+    /* ===== TIMER ENHANCEMENT ===== */
+    .timer-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .timer-stat-box {
+      background: var(--bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+    }
+    .timer-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .timer-stat-value {
+      font-family: 'Amiri', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--orange);
+      margin-top: 4px;
+    }
+
+    /* دعم أفضل لشاشات التابلت في الوضع الطولي */
+    @media (max-width:950px){
+      .timer-grid,.stats-grid,.tools-grid{ grid-template-columns:1fr; }
+      .stats-mini-row{ grid-template-columns:1fr 1fr; }
+      .main{ padding:22px 16px; }
+      .date-chip{ white-space:normal; }
+      .music-player {
+        bottom: 12px;
+        right: 12px;
+        min-width: 240px;
+      }
+      .theme-toggle {
+        top: 12px;
+        left: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="bg-orbs">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+
+<!-- NIGHT MODE TOGGLE -->
+<button class="theme-toggle" id="theme-toggle" title="تبديل الوضع الليلي">🌙</button>
+
+<!-- MUSIC PLAYER -->
+<div class="music-player" id="music-player">
+  <button class="music-toggle-btn" id="music-toggle-btn" title="لبست النظارات؟">👓</button>
+  <div class="music-info">
+    <div class="music-title">تذكير من لجين 🩺</div>
+    <div class="music-current" id="music-current">لاتنسى تلبس نظاراتك، انتبهلي ععيونك 💚</div>
+  </div>
+  <button class="music-collapse-btn" id="music-collapse-btn" title="طي">−</button>
+</div>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">🩺</div>
+  <nav class="nav-items">
+    <div class="nav-item active" onclick="showSection('timer')" title="">
+      <span>⏱️</span>
+      <span class="nav-tip">التايمر</span>
+    </div>
+    <div class="nav-item" onclick="showSection('stats')" title="">
+      <span>📊</span>
+      <span class="nav-tip">الإحصائيات</span>
+    </div>
+    <div class="nav-item" onclick="showSection('lujayn')" title="">
+      <span>🎀</span>
+      <span class="nav-tip">كبسولة لجين</span>
+    </div>
+    <div class="nav-item" onclick="showSection('tools')" title="">
+      <span>🔬</span>
+      <span class="nav-tip">الأدوات</span>
+    </div>
+    <div class="nav-item" onclick="showSection('notes')" title="">
+      <span>📝</span>
+      <span class="nav-tip">نوتبوك</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="avatar-bubble">🩺</div>
+    <a href="/logout" class="logout-btn" title="خروج">🚪</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="top-header">
+    <div class="greeting">
+      <h2 id="greeting-text">صباح النور، د. عبادة 🌟</h2>
+      <p id="sub-greeting">كل يوم خطوة نحو أحسن دكتور 🌿</p>
+    </div>
+    <div class="date-chip" id="date-chip">اليوم</div>
+  </div>
+
+  <!-- TIMER -->
+  <section id="section-timer" class="section active">
+    <div class="timer-grid">
+      <div class="premium-monitor">
+        <div class="monitor-header">
+          <div class="monitor-title">🩺 Clinical Study Monitor</div>
+          <div class="monitor-status" id="monitor-status"><span class="status-dot" id="status-dot"></span> <span id="status-text">Ready</span></div>
+        </div>
+
+        <div class="timer-circle-container">
+          <svg class="timer-svg" viewBox="0 0 200 200">
+            <defs>
+              <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="var(--orange-light)"/>
+                <stop offset="100%" stop-color="var(--orange)"/>
+              </linearGradient>
+              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                 <feGaussianBlur stdDeviation="6" result="blur" />
+                 <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+            <circle class="timer-bg" cx="100" cy="100" r="90"></circle>
+            <circle class="timer-progress" id="main-timer-progress" cx="100" cy="100" r="90"></circle>
+          </svg>
+          <div class="timer-content">
+             <div class="premium-time" id="timer-display">00:00:00</div>
+             <div class="timer-subtitle">Total Session Time</div>
+          </div>
+        </div>
+
+        <div class="premium-controls">
+          <button class="btn-premium primary" id="timer-start-btn" onclick="toggleTimer()">
+            <span class="icon" id="start-icon">▶</span> <span id="start-text">Start</span>
+          </button>
+          <button class="btn-premium secondary" onclick="resetTimer()">
+            <span class="icon">🔄</span> Reset
+          </button>
+          <button class="btn-premium outline" onclick="saveSession()">
+            <span class="icon">💾</span> Save
+          </button>
+        </div>
+      </div>
+
+      <div class="glass-card" style="display:flex; flex-direction:column; justify-content:center;">
+        <div class="card-title">⏱️ Dynamic Timer</div>
+        
+        <div class="timer-wrapper">
+            <div class="time-presets">
+                <button class="preset-btn" data-time="1500">25 دقيقة</button>
+                <button class="preset-btn" data-time="3000">50 دقيقة</button>
+                <button class="preset-btn active" data-time="1200">20 دقيقة</button>
+            </div>
+
+            <div class="dynamic-island-timer">
+                <div class="timer-left">
+                    <span class="timer-label">Study Session</span>
+                    <h1 class="island-timer-display" id="island-timer-display">20:00</h1>
+                    <button class="stop-btn" id="island-stop-btn">إعادة ↺</button>
+                </div>
+
+                <div class="timer-right">
+                    <div class="progress-ring">
+                        <svg class="ring-svg" viewBox="0 0 120 120">
+                            <circle class="ring-bg" cx="60" cy="60" r="54"></circle>
+                            <circle class="ring-progress" id="island-ring-progress" cx="60" cy="60" r="54"></circle>
+                        </svg>
+                        <button class="island-play-pause-btn" id="island-play-pause-btn">
+                            <span id="island-play-status-text">▶</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="glass-card" style="display:flex;align-items:center;gap:20px">
+        <div style="font-size:48px">📚</div>
+        <div>
+          <div class="card-title" style="margin-bottom:8px">دراسة اليوم</div>
+          <div style="font-family:'Amiri', serif;font-size:36px;font-weight:700;color:var(--orange)" id="today-hours">0.0</div>
+          <div style="font-size:13px;color:var(--text-muted);font-weight:800">ساعة اليوم</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section id="section-stats" class="section">
+    <div class="stats-grid">
+      <div class="glass-card">
+        <div class="card-title">📊 الإحصائيات الأسبوعية</div>
+        <canvas id="weekly-chart" height="200"></canvas>
+      </div>
+
+      <div class="glass-card circular-card">
+        <div class="card-title">🎯 إنجاز الأسبوع</div>
+        <div class="circular-progress-wrap">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <defs>
+              <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="var(--orange-light)"/>
+                <stop offset="100%" stop-color="var(--orange)"/>
+              </linearGradient>
+            </defs>
+            <circle class="progress-bg" cx="75" cy="75" r="60"></circle>
+            <circle class="progress-fill" id="progress-circle" cx="75" cy="75" r="60" stroke-dasharray="377" stroke-dashoffset="377"></circle>
+          </svg>
+          <div class="progress-text">
+            <div class="progress-pct" id="progress-pct">0%</div>
+            <div class="progress-label">من الهدف</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--text-muted);text-align:center;font-weight:800">
+          الهدف: <strong style="color:var(--orange)" id="goal-hours">10</strong> ساعة أسبوعياً
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-mini-row">
+      <div class="mini-stat glass-card"><div class="val" id="total-week">0.0</div><div class="lbl">ساعة هذا الأسبوع</div></div>
+      <div class="mini-stat glass-card"><div class="val" id="best-day-val">0.0</div><div class="lbl">أفضل يوم</div></div>
+      <div class="mini-stat glass-card"><div class="val" id="streak-val">0</div><div class="lbl">أيام متواصلة 🔥</div></div>
+    </div>
+  </section>
+
+  <!-- LUJAYN -->
+  <section id="section-lujayn" class="section">
+    <div class="lujayn-hero glass-card">
+      <div class="card-title" style="justify-content:center">💌 كبسولة لجين اليومية</div>
+      <div class="lujayn-hero-msg" id="lujayn-hero-msg">اضغط الزر لتظهر رسالة واحدة عشوائياً 🌿</div>
+      <div class="lujayn-from">— بكل المحبة، <span>لجين</span> 💚</div>
+
+      <div class="lujayn-btn-row" style="position:relative;z-index:1;margin-top:24px;display:flex;flex-direction:column;align-items:center;gap:12px;">
+        <button class="btn-premium primary" onclick="showRandomMsgCapsule(event)">
+          <span class="icon">💊</span> افتح الكبسولة 🎀
+        </button>
+        <div class="lujayn-hint">الرسائل الأخرى تبقى مخفية… عشان التشويق 😌</div>
+      </div>
+    </div>
+
+    <!-- MOOD TRACKER -->
+    <div class="glass-card" style="margin-top:16px">
+      <div class="card-title">🔋 مقياس طاقة دكتوري</div>
+      <p style="font-size:13px;color:var(--text-muted);font-weight:600;margin-bottom:16px;line-height:1.6">
+        كيف حاسس حالك اليوم؟ حدد مستوى حماسك وسعادتك، وخليني أشوف شو محتاج تسمع 💚
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:20px">
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:800; margin-bottom:8px">
+            <span>مستوى السعادة 😊</span>
+            <span id="happy-val" style="color:var(--orange)">5/10</span>
+          </div>
+          <input type="range" id="happy-slider" min="1" max="10" value="5" class="mood-slider" oninput="document.getElementById('happy-val').innerText = this.value + '/10'">
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:800; margin-bottom:8px">
+            <span>مستوى الحماس 🔥</span>
+            <span id="energy-val" style="color:var(--orange)">5/10</span>
+          </div>
+          <input type="range" id="energy-slider" min="1" max="10" value="5" class="mood-slider" oninput="document.getElementById('energy-val').innerText = this.value + '/10'">
+        </div>
+      </div>
+
+      <div style="text-align:center">
+        <button class="btn-premium secondary" style="padding:10px 20px;font-size:14px" onclick="checkDoctorMood()">
+          <span class="icon">🩺</span> افحص طاقتي
+        </button>
+      </div>
+
+      <div id="mood-result" style="margin-top:16px; padding:16px; background:var(--bg); border:1px solid var(--orange-light); border-radius:8px; font-size:14px; font-weight:800; color:var(--orange); text-align:center; display:none; line-height:1.8">
+      </div>
+    </div>
+  </section>
+
+  <!-- TOOLS -->
+  <section id="section-tools" class="section">
+    <div class="tools-grid">
+      <div class="glass-card">
+        <div class="card-title">✅ مهام دكتوري لليوم</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <div class="search-input-wrap" style="flex: 1; margin-bottom: 0;">
+            <span class="search-icon">✍️</span>
+            <input class="search-input" type="text" id="new-task-input" placeholder="اكتب مهمة جديدة..." onkeypress="handleTaskKeyPress(event)" autocomplete="off">
+          </div>
+          <button class="btn-premium primary" style="padding: 0 16px; border-radius: 6px;" onclick="uiAddTask()">➕</button>
+        </div>
+        <div id="tasks-list" style="max-height: 240px; overflow-y: auto; padding-right: 4px;"></div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-title">💉 فاحص القياسات الحيوية</div>
+
+        <select class="vitals-select" id="vital-select" onchange="updateVitalInput()">
+          <option value="">— اختر القياس —</option>
+          <option value="blood_pressure_systolic">الضغط الانقباضي (Systolic)</option>
+          <option value="blood_pressure_diastolic">الضغط الانبساطي (Diastolic)</option>
+          <option value="heart_rate">معدل ضربات القلب</option>
+          <option value="temperature">درجة الحرارة</option>
+          <option value="oxygen_saturation">تشبع الأكسجين</option>
+          <option value="blood_glucose">سكر الدم الصائم</option>
+          <option value="respiratory_rate">معدل التنفس</option>
+        </select>
+
+        <div class="search-input-wrap">
+          <span class="search-icon">📏</span>
+          <input class="search-input" type="number" id="vital-value" placeholder="اكتب القيمة..." oninput="checkVital()">
+        </div>
+
+        <div class="vital-result" id="vital-result"></div>
+
+        <div style="margin-top:10px;font-size:12px;color:var(--text-muted);font-weight:800;line-height:1.6">
+          المقارنة تتم بالقيم الطبيعية المبرمجة سابقاً (بدون AI).
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NOTES / NOTEBOOK -->
+  <section id="section-notes" class="section">
+    <div class="glass-card">
+      <div class="card-title">📝 النوتبوك الذكي</div>
+
+      <textarea class="notes-area" id="notes-area" placeholder="اكتب ملاحظاتك هنا... ولا تنسَ أني فخورة فيك 💚" oninput="onNotesInput()"></textarea>
+
+      <div style="text-align:left;margin-top:12px;font-size:12px;color:var(--text-muted);font-weight:900;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <span id="notes-status">مسودة فارغة 💚</span>
+        <button class="btn-premium primary" style="padding:8px 16px;font-size:13px;border-radius:8px" onclick="saveCurrentNote()">
+          <span class="icon">💾</span> حفظ الملاحظة
+        </button>
+      </div>
+    </div>
+
+    <div class="glass-card" style="margin-top:16px;">
+      <div class="card-title">📚 ملاحظاتي المحفوظة</div>
+      <div id="saved-notes-list" style="display:flex;flex-direction:column;gap:12px;margin-top:16px;">
+        <!-- Notes will be rendered here -->
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =======================
+   DATA
+======================= */
+let MEDLUJ_DATA = {};
+
+async function loadData() {
+  try {
+    const r = await fetch('/static/data/medluj_data.json');
+    MEDLUJ_DATA = await r.json();
+  } catch (e) {
+    MEDLUJ_DATA = {
+      lujayn_messages: [
+        {id:1, text:"يا عبادة، أنت نجمتي 🌟", mood:"cute"},
+        {id:2, text:"ادرس منيح مشاننا اي ", mood:"motivational"},
+        {id:3, text:"كل ورقة بتحفظها هي خطوة نحو حياة تنقذها ❤️‍🔥", mood:"motivational"},
+        {id:4, text:"روح اشرب مي وارجع 💧", mood:"care"},
+        {id:5, text:"أنا فخورة بجهودك ❤️", mood:"pride"},
+        {id:6, text:"كل دقيقة بتقضيها على الكتاب بتصنع منك دكتور أعظم 🩺", mood:"motivational"},
+        {id:7, text:"لما تتعب تذكر المريض اللي رح تداويه بكرا 🙏", mood:"care"},
+        {id:8, text:" أنا دايماً بدعمك والله ، وبستنى أشوفك مبسوط وناجح 🥼🤍", mood:"love"},
+        {id:9, text:"اي حدا بيقدر يصير دكتور بس مو اي حدا بيقدر يصير  دكتوري 👑", mood:"pride"},
+        {id:10, text:"فخورة بكل لحظة تعب بتسهرها عشان حلمنا ❤️", mood:"love"},
+        {id:11, text:"ادرس ترا تعبت كتير وأنا أشتغل على الويب سايت ", mood:"funny"},
+        {id:12, text:"أجل التفكير بالسيناريوهات لبعد الفاينل 😁", mood:"advice"},
+        {id:13, text:"تلت أشياء ممنوع تنساهم قبل ما تبدا دراسة تلبس نظاراتك وأكلك ووو يلا التالتة معروفة 😂", mood:"care"},
+        {id:14, text:"خذلك نفس وكاسة مي وبلش دراسة يا دكتوري 💧", mood:"care"},
+        {id:15, text:"ادرس منيح عشان تكسب كاسة شاي ولفة زعتر (أنت حتعملهم) 😂", mood:"funny"},
+        {id:16, text:"شي يوم أنا بنفسي حعدلك ساعات دراستك ادرس منيح لوقتها ", mood:"love"}
+      ],
+      timer_messages: {"30":"نص ساعة!! 🔥","60":"ساعة كاملة 💪","120":"ساعتين! لجين فخورة فيك 💚"},
+      medical_terminology: {},
+      normal_values: {
+        "blood_pressure_systolic": { "min": 90, "max": 120, "label": "الضغط الانقباضي", "unit": "mmHg", "low_msg": "منخفض، تأكد من شرب السوائل", "normal_msg": "طبيعي، ممتاز!", "high_msg": "مرتفع، يحتاج متابعة" },
+        "blood_pressure_diastolic": { "min": 60, "max": 80, "label": "الضغط الانبساطي", "unit": "mmHg", "low_msg": "منخفض", "normal_msg": "طبيعي", "high_msg": "مرتفع" },
+        "heart_rate": { "min": 60, "max": 100, "label": "معدل ضربات القلب", "unit": "bpm", "low_msg": "بطء في النبض", "normal_msg": "طبيعي", "high_msg": "تسرع في النبض" },
+        "temperature": { "min": 36.5, "max": 37.5, "label": "درجة الحرارة", "unit": "°C", "low_msg": "منخفضة", "normal_msg": "طبيعية", "high_msg": "حمى" },
+        "oxygen_saturation": { "min": 95, "max": 100, "label": "تشبع الأكسجين", "unit": "%", "low_msg": "نقص الأكسجة", "normal_msg": "طبيعي", "high_msg": "ممتاز" },
+        "blood_glucose": { "min": 70, "max": 100, "label": "سكر الدم الصائم", "unit": "mg/dL", "low_msg": "نقص السكر", "normal_msg": "طبيعي", "high_msg": "ارتفاع السكر" },
+        "respiratory_rate": { "min": 12, "max": 20, "label": "معدل التنفس", "unit": "breaths/min", "low_msg": "بطء التنفس", "normal_msg": "طبيعي", "high_msg": "تسرع التنفس" }
+      },
+      weekly_goal_hours: 10
+    };
+  }
+}
+
+/* =======================
+   HOURLY LUJAYN NOTIFICATION
+======================= */
+setInterval(() => {
+  const msgs = MEDLUJ_DATA.lujayn_messages || [];
+  if (!msgs.length) return;
+  const m = msgs[Math.floor(Math.random()*msgs.length)];
+  showToast('💌 من لجين: ' + m.text);
+}, 3600000); // 3600000 مللي ثانية = 60 دقيقة
+
+/* =======================
+   STORAGE HELPERS
+======================= */
+function getLS(key, def=null) {
+  try {
+    const v = localStorage.getItem('medluj_'+key);
+    return v ? JSON.parse(v) : def;
+  } catch { return def; }
+}
+function setLS(key, val) {
+  try { localStorage.setItem('medluj_'+key, JSON.stringify(val)); } catch {}
+}
+
+/* =======================
+   TIMER (stable on refresh)
+======================= */
+let studyRunning = false;
+let studyInterval = null;
+let lastMsgMinute = -1;
+
+let studySeconds = 0;
+let studyAnchorMs = 0;
+let lastCountedElapsed = 0;
+
+const TIMER_KEY = 'timer_state_v1';
+
+function getTodayKey() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function loadTimerState() {
+  const st = getLS(TIMER_KEY, null);
+  if (!st) return;
+
+  if (typeof st !== 'object') return;
+  studyRunning = !!st.running;
+  studySeconds = Number(st.studySeconds || 0);
+  studyAnchorMs = Number(st.anchorMs || 0);
+  lastCountedElapsed = Number(st.lastCountedElapsed || studySeconds);
+
+  // prevent showing the same minute again right after refresh
+  lastMsgMinute = Math.floor(studySeconds / 60);
+}
+
+function persistTimerState() {
+  setLS(TIMER_KEY, {
+    running: studyRunning,
+    studySeconds,
+    anchorMs: studyAnchorMs,
+    lastCountedElapsed
+  });
+}
+
+function formatHMS(totalSeconds) {
+  const h = Math.floor(totalSeconds/3600);
+  const m = Math.floor((totalSeconds%3600)/60);
+  const s = totalSeconds%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+function computeElapsedSeconds() {
+  if (!studyAnchorMs) return studySeconds;
+  const elapsed = Math.floor((Date.now() - studyAnchorMs)/1000);
+  return Math.max(0, elapsed);
+}
+
+function startTimer() {
+  studyRunning = true;
+  const now = Date.now();
+  studyAnchorMs = now - studySeconds*1000;
+  lastCountedElapsed = studySeconds;
+
+  document.getElementById('start-icon').textContent = '⏸';
+  document.getElementById('start-text').textContent = 'Pause';
+  document.getElementById('timer-display').classList.add('pulse');
+  document.getElementById('status-dot').className = 'status-dot active';
+  document.getElementById('status-text').textContent = 'Running';
+
+  persistTimerState();
+
+  if (studyInterval) clearInterval(studyInterval);
+  studyInterval = setInterval(() => tickStudy(false), 1000);
+  tickStudy(true);
+}
+
+function stopTimer() {
+  studyRunning = false;
+  if (studyInterval) clearInterval(studyInterval);
+  studyInterval = null;
+
+  studySeconds = computeElapsedSeconds();
+
+  document.getElementById('start-icon').textContent = '▶';
+  document.getElementById('start-text').textContent = 'Resume';
+  document.getElementById('timer-display').classList.remove('pulse');
+  document.getElementById('status-dot').className = 'status-dot paused';
+  document.getElementById('status-text').textContent = 'Paused';
+
+  persistTimerState();
+  updateTimerDisplay();
+}
+
+function toggleTimer() {
+  if (studyRunning) stopTimer();
+  else startTimer();
+}
+
+function tickStudy(force) {
+  if (!studyRunning) return;
+
+  const newElapsed = computeElapsedSeconds();
+  const delta = newElapsed - lastCountedElapsed;
+
+  studySeconds = newElapsed;
+  updateTimerDisplay();
+
+  if (delta > 0 || force) {
+    const today = getTodayKey();
+    const dayHours = Number(getLS('day_'+today, 0) || 0);
+    const addedHours = Math.max(0, delta)/3600;
+    const newHours = dayHours + addedHours;
+
+    setLS('day_'+today, newHours);
+    document.getElementById('today-hours').textContent = newHours.toFixed(1);
+    lastCountedElapsed = newElapsed;
+
+    persistTimerState();
+    checkWeeklyGoal();
+  }
+
+  checkTimerMessages();
+}
+
+function updateTimerDisplay() {
+  document.getElementById('timer-display').textContent = formatHMS(studySeconds);
+  const circumference = 565.48;
+  const pct = (studySeconds % 3600) / 3600;
+  const offset = circumference - (pct * circumference);
+  document.getElementById('main-timer-progress').style.strokeDashoffset = offset;
+}
+
+function checkTimerMessages() {
+  const mins = Math.floor(studySeconds/60);
+  const msgs = MEDLUJ_DATA.timer_messages || {};
+  if (msgs[String(mins)] && mins !== lastMsgMinute) {
+    lastMsgMinute = mins;
+    showEncourage(msgs[String(mins)]);
+    showToast(msgs[String(mins)]);
+  }
+  
+  // Additional motivation at specific milestones
+  if (mins === 15 && mins !== lastMsgMinute) showToast('ربع ساعة! أنت في الطريق الصحيح 🚀');
+  if (mins === 45 && mins !== lastMsgMinute) showToast('45 دقيقة! تقدم رائع! 💪');
+  if (mins === 150 && mins !== lastMsgMinute) showToast('ساعتين ونص! لجين فاخرة فيك 💛');
+}
+
+function resetTimer() {
+  if (studyInterval) clearInterval(studyInterval);
+  studyInterval = null;
+
+  studyRunning = false;
+  studySeconds = 0;
+  studyAnchorMs = 0;
+  lastCountedElapsed = 0;
+  lastMsgMinute = -1;
+
+  localStorage.removeItem('medluj_'+TIMER_KEY);
+
+  document.getElementById('start-icon').textContent = '▶';
+  document.getElementById('start-text').textContent = 'Start';
+  document.getElementById('timer-display').classList.remove('pulse');
+  document.getElementById('timer-display').textContent = '00:00:00';
+  document.getElementById('status-dot').className = 'status-dot';
+  document.getElementById('status-text').textContent = 'Ready';
+  document.getElementById('main-timer-progress').style.strokeDashoffset = 565.48;
+}
+
+function saveSession() {
+  const hours = (studySeconds / 3600).toFixed(1);
+  const msg = `💾 تم حفظ جلسة بـ ${hours} ساعة`;
+  
+  const today = getTodayKey();
+  const dayHours = Number(getLS('day_'+today, 0) || 0);
+  const totalToday = dayHours + (studySeconds / 3600);
+  
+  setLS('day_'+today, totalToday);
+  document.getElementById('today-hours').textContent = totalToday.toFixed(1);
+  
+  showToast(msg + ' 🌿');
+}
+
+function loadTodayHours() {
+  const today = getTodayKey();
+  const h = Number(getLS('day_'+today, 0) || 0);
+  document.getElementById('today-hours').textContent = h.toFixed(1);
+}
+
+/* =======================
+   DYNAMIC ISLAND TIMER
+======================= */
+let islandTimeLeft = 1200; // 20 min default
+let islandTotalTime = 1200;
+let islandTimerInterval = null;
+const ringCircumference = 339.29;
+
+function updateIslandDisplay() {
+    const display = document.getElementById('island-timer-display');
+    const ring = document.getElementById('island-ring-progress');
+    if (!display || !ring) return;
+
+    let mins = Math.floor(islandTimeLeft / 60);
+    let secs = islandTimeLeft % 60;
+    display.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    
+    let offset = ringCircumference * (1 - islandTimeLeft / islandTotalTime);
+    ring.style.strokeDashoffset = offset;
+}
+
+function startIslandTimer() {
+    if (islandTimerInterval) return;
+    document.getElementById('island-play-status-text').innerText = "⏸";
+    islandTimerInterval = setInterval(() => {
+        if (islandTimeLeft > 0) {
+            islandTimeLeft--;
+            updateIslandDisplay();
+            setLS('medluj_island_timeLeft', islandTimeLeft);
+            setLS('medluj_island_totalTime', islandTotalTime);
+        } else {
+            clearInterval(islandTimerInterval);
+            islandTimerInterval = null;
+            document.getElementById('island-play-status-text').innerText = "▶";
+            showToast("كفو دكتور عبادة! إنجاز عظيم 🏆");
+            islandTimeLeft = islandTotalTime;
+            updateIslandDisplay();
+        }
+    }, 1000);
+}
+
+function pauseIslandTimer() {
+    clearInterval(islandTimerInterval);
+    islandTimerInterval = null;
+    document.getElementById('island-play-status-text').innerText = "▶";
+}
+
+function setupIslandTimer() {
+    document.getElementById('island-play-pause-btn').addEventListener('click', () => {
+        islandTimerInterval ? pauseIslandTimer() : startIslandTimer();
+    });
+
+    document.getElementById('island-stop-btn').addEventListener('click', () => {
+        pauseIslandTimer();
+        islandTimeLeft = islandTotalTime;
+        updateIslandDisplay();
+        setLS('medluj_island_timeLeft', islandTimeLeft);
+    });
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelector('.preset-btn.active')?.classList.remove('active');
+            btn.classList.add('active');
+            islandTotalTime = parseInt(btn.dataset.time);
+            islandTimeLeft = islandTotalTime;
+            pauseIslandTimer();
+            updateIslandDisplay();
+            setLS('medluj_island_totalTime', islandTotalTime);
+            setLS('medluj_island_timeLeft', islandTimeLeft);
+        });
+    });
+
+    const savedTime = getLS('medluj_island_timeLeft');
+    const savedTotal = getLS('medluj_island_totalTime');
+    if (savedTotal) islandTotalTime = parseInt(savedTotal);
+    if (savedTime) {
+        islandTimeLeft = parseInt(savedTime);
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            if (parseInt(btn.dataset.time) === islandTotalTime) {
+                document.querySelector('.preset-btn.active')?.classList.remove('active');
+                btn.classList.add('active');
+            }
+        });
+    }
+    updateIslandDisplay();
+}
+
+/* =======================
+   WEEKLY CHART
+======================= */
+let weekChart = null;
+
+function getWeekData() {
+  const d = [];
+  const today = new Date();
+  for (let i=0;i<7;i++) {
+    const day = new Date(today);
+    day.setDate(today.getDate() - ((today.getDay()+1) % 7) + i);
+    const key = day.toISOString().split('T')[0];
+    d.push(parseFloat(getLS('day_'+key, 0) || 0));
+  }
+  return d;
+}
+
+function checkWeeklyGoal() {
+  const data = getWeekData();
+  const total = data.reduce((a,b)=>a+b,0);
+  const goal = MEDLUJ_DATA.weekly_goal_hours || 10;
+  
+  if (total >= goal && goal > 0) {
+    const today = new Date();
+    today.setDate(today.getDate() - ((today.getDay()+1) % 7));
+    const weekKey = 'goal_reached_' + today.toISOString().split('T')[0];
+    if (!getLS(weekKey)) {
+      showToast('🎉 كفو يا دكتور! خلصت الـ 10 ساعات وأكملت هدفك الأسبوعي بنجاح 🏆💚');
+      setLS(weekKey, true);
+    }
+  }
+}
+
+function updateCircularProgress(data) {
+  const total = data.reduce((a,b)=>a+b,0);
+  const goal = MEDLUJ_DATA.weekly_goal_hours || 10;
+  const pct = Math.min(100, (total/goal)*100);
+  const circumference = 377;
+  const offset = circumference - (pct/100)*circumference;
+
+  document.getElementById('progress-circle').style.strokeDashoffset = offset;
+  document.getElementById('progress-pct').textContent = Math.round(pct)+'%';
+  document.getElementById('goal-hours').textContent = goal;
+  document.getElementById('total-week').textContent = total.toFixed(1);
+
+  checkWeeklyGoal();
+}
+
+function updateMiniStats(data) {
+  document.getElementById('best-day-val').textContent = (Math.max(...data,0)).toFixed(1);
+
+  let streak = 0;
+  const today = new Date();
+  for (let i=0;i<30;i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate()-i);
+    const key = d.toISOString().split('T')[0];
+    if (parseFloat(getLS('day_'+key,0) || 0) > 0.1) streak++;
+    else break;
+  }
+  document.getElementById('streak-val').textContent = String(streak);
+}
+
+function initChartIfNeeded() {
+  if (weekChart) return;
+
+  const days = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
+  const data = getWeekData();
+  const ctx = document.getElementById('weekly-chart').getContext('2d');
+
+  weekChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: days,
+      datasets: [{
+        label: 'ساعات الدراسة',
+        data,
+        backgroundColor: data.map((v,i) =>
+          i === new Date().getDay() ? 'rgba(26,54,93,0.85)' : 'rgba(26,54,93,0.30)'
+        ),
+        borderColor: 'rgba(26,54,93,0.95)',
+        borderWidth: 2,
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => Number(ctx.raw).toFixed(1)+' ساعة' } }
+      },
+      scales: {
+        y: { beginAtZero: true, grid: { color:'rgba(0,0,0,0.05)' }, ticks: { color:'var(--text-muted)' } },
+        x: { grid: { display: false }, ticks: { color:'var(--text-muted)', font:{family:'Tajawal'} } }
+      }
+    }
+  });
+
+  updateCircularProgress(data);
+  updateMiniStats(data);
+}
+
+function refreshChart() {
+  if (!weekChart) return;
+  const data = getWeekData();
+  weekChart.data.datasets[0].data = data;
+  const days = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
+  weekChart.data.labels = days;
+  weekChart.update();
+  updateCircularProgress(data);
+  updateMiniStats(data);
+}
+
+/* =======================
+   LUJAYN CAPSULE (one message only) + Cute Sparkles
+======================= */
+function showRandomMsgCapsule(e) {
+  const msgs = MEDLUJ_DATA.lujayn_messages || [];
+  if (!msgs.length) return;
+  const m = msgs[Math.floor(Math.random()*msgs.length)];
+  const msgEl = document.getElementById('lujayn-hero-msg');
+  
+  // Fade out animation
+  msgEl.style.transition = 'opacity 0.3s ease-out';
+  msgEl.style.opacity = '0';
+  
+  setTimeout(() => {
+    msgEl.textContent = m.text;
+    msgEl.style.opacity = '1';
+    msgEl.style.transition = 'opacity 0.4s ease-in';
+  }, 150);
+  
+  showToast('كبسولة لجين: تم فتح رسالة واحدة 🎀');
+
+  if (e) {
+    // Create sparkle effect
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => {
+        const heart = document.createElement('div');
+        heart.innerHTML = '✨❤️';
+        heart.style.position = 'fixed';
+        heart.style.left = (e.clientX - 15 + Math.random() * 30) + 'px';
+        heart.style.top = (e.clientY - 20 + Math.random() * 30) + 'px';
+        heart.style.fontSize = '20px';
+        heart.style.pointerEvents = 'none';
+        heart.style.zIndex = '9999';
+        heart.style.transition = 'all 1.2s cubic-bezier(0.25, 1, 0.5, 1)';
+        heart.style.opacity = '1';
+        document.body.appendChild(heart);
+        
+        setTimeout(() => {
+          heart.style.transform = 'translateY(-100px) scale(1.5) rotate(' + Math.random() * 360 + 'deg)';
+          heart.style.opacity = '0';
+        }, 10);
+        
+        setTimeout(() => heart.remove(), 1200);
+      }, i * 50);
+    }
+  }
+}
+
+/* =======================
+   TO-DO LIST (TASKS)
+======================= */
+const TASKS_LS_KEY = 'medluj_tasks_v1';
+
+function uiAddTask() {
+  const input = document.getElementById('new-task-input');
+  const text = input.value.trim();
+  if (text) {
+    addTask(text);
+    input.value = '';
+  }
+}
+
+function handleTaskKeyPress(e) {
+  if (e.key === 'Enter') {
+    uiAddTask();
+  }
+}
+
+function addTask(text) {
+  const tasks = getLS(TASKS_LS_KEY) || [];
+  tasks.push({ id: Date.now(), text: text, completed: false });
+  setLS(TASKS_LS_KEY, tasks);
+  renderTasks();
+  showToast('تمت إضافة المهمة بنجاح ✅');
+}
+
+function toggleTask(id) {
+  const tasks = getLS(TASKS_LS_KEY) || [];
+  const task = tasks.find(t => t.id === id);
+  if (task) {
+    task.completed = !task.completed;
+    setLS(TASKS_LS_KEY, tasks);
+    renderTasks();
+    if (task.completed) showToast('عاش دكتوري! كفو 👏');
+  }
+}
+
+function deleteTodoTask(id) {
+  let tasks = getLS(TASKS_LS_KEY) || [];
+  tasks = tasks.filter(t => t.id !== id);
+  setLS(TASKS_LS_KEY, tasks);
+  renderTasks();
+}
+
+function renderTasks() {
+  const tasks = getLS(TASKS_LS_KEY) || [];
+  const container = document.getElementById('tasks-list');
+  
+  if (tasks.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;font-weight:700;padding:20px;">لا توجد مهام حالياً. أضف مهامك لليوم! 🎯</div>';
+    return;
+  }
+  
+  container.innerHTML = tasks.map(t => `
+    <div class="task-item ${t.completed ? 'completed' : ''}">
+      <input type="checkbox" class="task-checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask(${t.id})">
+      <span class="task-text">${t.text}</span>
+      <button class="task-delete" onclick="deleteTodoTask(${t.id})" title="حذف">✖</button>
+    </div>
+  `).join('');
+}
+
+/* =======================
+   VITALS CHECKER (normal values)
+======================= */
+function updateVitalInput() {
+  document.getElementById('vital-value').value = '';
+  const el = document.getElementById('vital-result');
+  el.className = 'vital-result';
+  el.textContent = '';
+}
+
+function checkVital() {
+  const selectEl = document.getElementById('vital-select');
+  const key = selectEl.value;
+  const raw = document.getElementById('vital-value').value;
+
+  const resEl = document.getElementById('vital-result');
+
+  if (!key || raw === '') {
+    resEl.className = 'vital-result';
+    resEl.textContent = '';
+    return;
+  }
+
+  const val = Number(raw);
+  if (!Number.isFinite(val)) return;
+
+  const db = MEDLUJ_DATA.normal_values || {};
+  const norm = db[key];
+  if (!norm || typeof norm.min !== 'number' || typeof norm.max !== 'number') return;
+
+  let cls = 'normal';
+  if (val < norm.min) cls = 'low';
+  else if (val > norm.max) cls = 'high';
+
+  let msg = '';
+  if (cls === 'low') msg = norm.low_msg;
+  else if (cls === 'high') msg = norm.high_msg;
+  else msg = norm.normal_msg;
+
+  const label = norm.label || 'القياس';
+  const unit = norm.unit ? (' ' + norm.unit) : '';
+  resEl.className = `vital-result ${cls} show`;
+  resEl.textContent = `${label}: ${val}${unit} — ${msg}`;
+}
+
+/* =======================
+   NOTES (Multiple Notes Support)
+======================= */
+const DRAFT_LS_KEY = 'notes_draft_v1';
+const SAVED_NOTES_KEY = 'saved_notes_list_v1';
+let notesDebounceTimer = null;
+
+let lastSecretCheck = '';
+function checkSecretKeywords(text) {
+  if (!text || text === lastSecretCheck) return;
+  lastSecretCheck = text;
+  
+  const words = text.split(/\s+/);
+  const lastWord = words[words.length - 1];
+  
+  if (lastWord === 'تعبت') showToast('سلامتك من التعب، خذ بريك صغير 🥺💚');
+  else if (lastWord === 'صعب' || lastWord === 'صعبة') showToast('أنت قدها وما في شي بيصعب على دكتوري 💪✨');
+  else if (lastWord === 'لجين') showToast('يا عيون لجين وروحها 🎀');
+}
+
+function onNotesInput() {
+  const text = document.getElementById('notes-area').value || '';
+  setLS(DRAFT_LS_KEY, text);
+  document.getElementById('notes-status').textContent = 'جارٍ حفظ المسودة... ⏳';
+
+  checkSecretKeywords(text);
+
+  if (notesDebounceTimer) clearTimeout(notesDebounceTimer);
+  notesDebounceTimer = setTimeout(() => {
+    document.getElementById('notes-status').textContent = 'تم حفظ المسودة محلياً ✅';
+  }, 300);
+}
+
+function saveCurrentNote() {
+  const text = document.getElementById('notes-area').value.trim();
+  if (!text) {
+    showToast('لا يوجد نص لحفظه! 😅');
+    return;
+  }
+  
+  const notes = getLS(SAVED_NOTES_KEY) || [];
+  const newNote = {
+    id: Date.now(),
+    text: text,
+    date: new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  };
+  
+  notes.unshift(newNote); // إضافة الملاحظة الجديدة في أعلى القائمة
+  setLS(SAVED_NOTES_KEY, notes);
+  
+  // تفريغ المربع بعد الحفظ
+  document.getElementById('notes-area').value = '';
+  setLS(DRAFT_LS_KEY, '');
+  document.getElementById('notes-status').textContent = 'مسودة فارغة 💚';
+  
+  showToast('تم حفظ الملاحظة بنجاح 📝💚');
+  renderSavedNotes();
+}
+
+function deleteNote(id) {
+  if(!confirm('متأكد بدك تحذف هالملاحظة؟')) return;
+  let notes = getLS(SAVED_NOTES_KEY) || [];
+  notes = notes.filter(n => n.id !== id);
+  setLS(SAVED_NOTES_KEY, notes);
+  renderSavedNotes();
+  showToast('تم حذف الملاحظة 🗑️');
+}
+
+function renderSavedNotes() {
+  let notes = getLS(SAVED_NOTES_KEY);
+  if (!Array.isArray(notes)) notes = [];
+  const container = document.getElementById('saved-notes-list');
+  
+  if (!notes || notes.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;font-weight:700;padding:20px;">لا توجد ملاحظات محفوظة بعد. اكتب ملاحظتك فوق واحفظها! 📝</div>';
+    return;
+  }
+  
+  container.innerHTML = notes.map(note => `
+    <div style="background:var(--bg); border:1px solid var(--card-border); border-radius:8px; padding:16px; position:relative; box-shadow:0 2px 4px rgba(0,0,0,0.02); transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+      <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:800;">📅 ${note.date}</div>
+      <div style="font-size:14px; line-height:1.7; white-space:pre-wrap; color:var(--text); font-weight:600;">${note.text}</div>
+      <button onclick="deleteNote(${note.id})" style="position:absolute; top:12px; left:12px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.6; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'" title="حذف">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function loadNotesFromLocal() {
+  // دمج الملاحظات القديمة كمسودة لتفادي ضياعها
+  let draft = getLS(DRAFT_LS_KEY);
+  if (draft === null || draft === undefined) {
+    draft = getLS('notes_text_v1', '');
+  }
+  document.getElementById('notes-area').value = draft || '';
+  renderSavedNotes();
+}
+
+/* =======================
+   CUTE TAB TITLE EFFECT
+======================= */
+const originalTitle = document.title;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    document.title = "مكانك فاضي يا دكتور 🥺";
+  } else {
+    document.title = "نورّت مكانك 🩺💚";
+    setTimeout(() => { document.title = originalTitle; }, 3000);
+  }
+});
+
+/* =======================
+   TOAST + NAV
+======================= */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  document.getElementById('section-'+name).classList.add('active');
+
+  const navMap = ['timer','stats','lujayn','tools','notes'];
+  const idx = navMap.indexOf(name);
+  if (idx >= 0) document.querySelectorAll('.nav-item')[idx].classList.add('active');
+
+  if (name === 'stats') {
+    initChartIfNeeded();
+    refreshChart();
+  }
+}
+
+function setDateGreeting() {
+  const now = new Date();
+  document.getElementById('date-chip').textContent = now.toLocaleDateString('ar-EG', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+}
+
+/* =======================
+   NIGHT MODE
+======================= */
+const NIGHT_MODE_KEY = 'medluj_night_mode';
+function initNightMode() {
+  const isNightMode = getLS(NIGHT_MODE_KEY, false);
+  if (isNightMode) {
+    document.body.classList.add('night-mode');
+    document.getElementById('theme-toggle').textContent = '☀️';
+    document.getElementById('greeting-text').textContent = 'مساء الخير، د. عبادة 🌟';
+  } else {
+    document.body.classList.remove('night-mode');
+    document.getElementById('theme-toggle').textContent = '🌙';
+    document.getElementById('greeting-text').textContent = 'صباح الخير، د. عبادة 🌟';
+  }
+}
+
+function toggleNightMode() {
+  const isNightMode = document.body.classList.toggle('night-mode');
+  setLS(NIGHT_MODE_KEY, isNightMode);
+  document.getElementById('theme-toggle').textContent = isNightMode ? '☀️' : '🌙';
+  showToast(isNightMode ? 'وضع الليل ☀️🌙' : 'وضع النهار ☀️🌙');
+  document.getElementById('greeting-text').textContent = isNightMode ? 'مساء الخير، د. عبادة 🌟' : 'صباح الخير، د. عبادة 🌟';
+}
+
+document.getElementById('theme-toggle').addEventListener('click', toggleNightMode);
+
+/* =======================
+   GLASSES REMINDER
+======================= */
+let musicPlaying = false;
+let musicCollapsed = false;
+
+function toggleMusicPlayer() {
+  musicPlaying = !musicPlaying;
+  const btn = document.getElementById('music-toggle-btn');
+  const current = document.getElementById('music-current');
+  
+  if (musicPlaying) {
+    btn.classList.add('playing');
+    current.textContent = 'ممتاز، نظاراتك عليك 👓💚';
+    showToast('يعطيك العافية، عيونك بتهمّني 👓💚');
+  } else {
+    btn.classList.remove('playing');
+    current.textContent = 'لاتنسى تلبس نظاراتك، انتبهلي ععيونك 💚';
+    showToast('زعلتني.. البس نظاراتك! 🥺');
+  }
+  setLS('medluj_music_playing', musicPlaying);
+}
+
+function toggleMusicCollapse() {
+  musicCollapsed = !musicCollapsed;
+  const player = document.getElementById('music-player');
+  const btn = document.getElementById('music-collapse-btn');
+  
+  if (musicCollapsed) {
+    player.classList.add('collapsed');
+    btn.textContent = '+';
+  } else {
+    player.classList.remove('collapsed');
+    btn.textContent = '−';
+  }
+}
+
+document.getElementById('music-toggle-btn').addEventListener('click', toggleMusicPlayer);
+document.getElementById('music-collapse-btn').addEventListener('click', toggleMusicCollapse);
+
+// Load music state
+(function initMusic() {
+  musicPlaying = getLS('medluj_music_playing', false);
+  if (musicPlaying) {
+    const btn = document.getElementById('music-toggle-btn');
+    btn.classList.add('playing');
+  }
+})();
+
+/* =======================
+   MOOD TRACKER
+======================= */
+const MOOD_MESSAGES = {
+  low: [
+    "معفولة انا موجودة وانت مالك سعييييييييد كنت مفكره بس تتذكرني بتنبسطط ",
+    "مو مشكلة لو طاقتك اليوم مو عالية، الأيام الصعبة بتصنع دكاترة عظماء. بسم الله ونكمل 🥺💪",
+    "صعب بس النهاية تستاهل ",
+    "حقك تتعب وتطفى شوي، بس ما تنسى إني هون لادعمك وواني كل يوم بدعيلك وبدير بالي عليك "
+  ],
+  medium: [
+    "الحمدلله ! شدلي حيلك ، ضايل تكة هنن اول 80 سنة بس صعبين🚀",
+    "يا سلام عليك، ماشي صح! خلي هالحماس يزيد ورجيني إبداعاتك بالدراسة ",
+    "خطوة بخطوة عم تقرب للحلم.. أنا فخورة بجهودك، كمل وما توقف ",
+    "نص الطريق يعني قرّبنا! بآمن فيك وبقدراتك يا أشطر دكتور "
+  ],
+  high: [
+    "يا عيني على الحماس! هيك الدكاترة ولا بلا 🔥 الله يحميك ويقويك!",
+    "طاقتك اليوم بتضوي المستشفى كله!  استغل هالسعادة وخلص اللي عليك بسرعة 🚀",
+    "بحب أشوفك مبسوط ومتحمس! طاقتك الحلوة بتوصلني، كمل إبداع يا دكتوري 👑💚",
+    "لما تكون مبسوط أنا بكون مبسوطة.. يلا نطير بالدراسة اليوم ونسكر العداد! 🏆"
+  ]
+};
+
+function checkDoctorMood() {
+  const happy = parseInt(document.getElementById('happy-slider').value);
+  const energy = parseInt(document.getElementById('energy-slider').value);
+  const avg = (happy + energy) / 2;
+  
+  let cat = 'medium';
+  if (avg <= 4.5) cat = 'low';
+  else if (avg >= 7.5) cat = 'high';
+  
+  const msgs = MOOD_MESSAGES[cat];
+  const msg = msgs[Math.floor(Math.random() * msgs.length)];
+  
+  const resEl = document.getElementById('mood-result');
+  resEl.style.display = 'block';
+  resEl.style.opacity = '0';
+  resEl.style.transform = 'translateY(10px)';
+  resEl.style.transition = 'all 0.4s ease';
+  
+  setTimeout(() => {
+    resEl.innerHTML = msg;
+    resEl.style.opacity = '1';
+    resEl.style.transform = 'translateY(0)';
+  }, 50);
+}
+
+/* =======================
+   INIT
+======================= */
+async function init() {
+  setDateGreeting();
+  loadTodayHours();
+  loadNotesFromLocal();
+  renderTasks();
+  await loadTimerStateAsyncInit();
+  initChartIfNeeded(); // prepare canvas early for smoother stats
+  initNightMode(); // Initialize night mode
+
+  // init other UI:
+  setupIslandTimer();
+}
+
+async function loadTimerStateAsyncInit() {
+  loadTimerState();
+
+  updateTimerDisplay();
+
+  if (studyRunning) {
+    document.getElementById('start-icon').textContent = '⏸';
+    document.getElementById('start-text').textContent = 'Pause';
+    document.getElementById('timer-display').classList.add('pulse');
+    document.getElementById('status-dot').className = 'status-dot active';
+    document.getElementById('status-text').textContent = 'Running';
+
+    if (studyInterval) clearInterval(studyInterval);
+    studyInterval = setInterval(() => tickStudy(false), 1000);
+    tickStudy(true);
+  } else {
+    document.getElementById('start-icon').textContent = '▶';
+    document.getElementById('start-text').textContent = studySeconds > 0 ? 'Resume' : 'Start';
+    document.getElementById('timer-display').classList.remove('pulse');
+    document.getElementById('status-dot').className = studySeconds > 0 ? 'status-dot paused' : 'status-dot';
+    document.getElementById('status-text').textContent = studySeconds > 0 ? 'Paused' : 'Ready';
+  }
+}
+
+(async () => {
+  await loadData();
+  await init();
+})();
+
+/* =======================
+   SAVE STATE ON EXIT (Refresh / Close)
+======================= */
+window.addEventListener('beforeunload', () => {
+  const notesArea = document.getElementById('notes-area');
+  if (notesArea) setLS(DRAFT_LS_KEY, notesArea.value);
+  
+  if (studyRunning) persistTimerState();
+  if (islandTimerInterval) {
+    setLS('medluj_island_timeLeft', islandTimeLeft);
+    setLS('medluj_island_running', true);
+  }
+});
+</script>
+</body>
+</html>

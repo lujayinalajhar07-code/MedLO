@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedLuj — ادخل يا دكتور 🩺</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            min-height: 100vh;
+            background: #F9F6F0;
+            background-image: radial-gradient(#EFEBE1 1px, transparent 1px);
+            background-size: 20px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .ecg-line {
+            position: fixed;
+            bottom: 30px;
+            left: 0; right: 0;
+            height: 60px;
+            opacity: 0.3;
+        }
+
+        .login-card {
+            background: #FFFFFF;
+            border: 1px solid #D8D2C4;
+            border-radius: 8px;
+            padding: 52px 48px;
+            width: 420px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 10;
+            animation: cardIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        @keyframes cardIn {
+            from { opacity:0; transform: translateY(40px) scale(0.95); }
+            to { opacity:1; transform: translateY(0) scale(1); }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .logo-icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+        .logo h1 {
+            font-family: 'Amiri', serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: #1A365D;
+        }
+        .logo p {
+            font-size: 15px;
+            color: #718096;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        .field-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: #4A5568;
+            margin-bottom: 8px;
+        }
+        input {
+            width: 100%;
+            padding: 14px 18px;
+            background: #F9F6F0;
+            border: 1px solid #D8D2C4;
+            border-radius: 6px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 15px;
+            color: #2D3748;
+            outline: none;
+            transition: all 0.3s;
+        }
+        input:focus {
+            border-color: #1A365D;
+            background: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(26,54,93,0.1);
+        }
+        input::placeholder { color: #A0AEC0; }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: #1A365D;
+            border: 1px solid #1A365D;
+            border-radius: 6px;
+            color: white;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+        }
+        .login-btn:hover {
+            background: #2B6CB0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(26,54,93,0.2);
+        }
+        .login-btn:active { transform: translateY(0); }
+
+        .error-msg {
+            background: #FED7D7;
+            border: 1px solid #FEB2B2;
+            border-radius: 6px;
+            padding: 10px 16px;
+            color: #9B2C2C;
+            font-size: 13px;
+            margin-top: 14px;
+            display: none;
+            text-align: center;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 12px;
+            color: #718096;
+        }
+        .footer-note span { color: #C5A880; font-weight: 700; }
+        .cute-heart { display: inline-block; animation: pulseHeart 1.5s infinite; }
+        @keyframes pulseHeart { 0%,100%{transform:scale(1)} 15%{transform:scale(1.25)} 30%{transform:scale(1)} }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">
+            <span class="logo-icon">🩺</span>
+            <h1>MedLuj</h1>
+            <p>كونك عبادة، ادخل وارتاح 🌿</p>
+        </div>
+
+        <div class="field-group">
+            <label>اسمك يا دكتور</label>
+            <input type="text" id="username" placeholder="عبادة" value="عبادة" />
+        </div>
+        <div class="field-group">
+            <label>كلمة السر</label>
+            <input type="password" id="password" placeholder="••••" />
+        </div>
+
+        <button class="login-btn" onclick="doLogin()">ادخل يلا 🚀</button>
+        <div class="error-msg" id="error"></div>
+
+        <div class="footer-note">
+            مصنوع بـ <span class="cute-heart">❤️</span> من لجين لـ <span>عبادة</span>
+        </div>
+    </div>
+
+    <svg class="ecg-line" viewBox="0 0 1200 60" xmlns="http://www.w3.org/2000/svg">
+        <polyline points="0,30 100,30 120,30 130,5 140,55 150,30 160,30 300,30 320,30 330,5 340,55 350,30 360,30 500,30 520,30 530,5 540,55 550,30 560,30 700,30 720,30 730,5 740,55 750,30 760,30 900,30 920,30 930,5 940,55 950,30 960,30 1100,30 1120,30 1130,5 1140,55 1150,30 1160,30 1200,30"
+              fill="none" stroke="#1A365D" stroke-width="2" opacity="1"/>
+    </svg>
+
+    <script>
+        document.getElementById('password').addEventListener('keypress', e => {
+            if (e.key === 'Enter') doLogin();
+        });
+
+        async function doLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errEl = document.getElementById('error');
+
+            const res = await fetch('/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password})
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                errEl.style.display = 'block';
+                errEl.textContent = data.message;
+            }
+        }
+    </script>
+</body>
+</html>
